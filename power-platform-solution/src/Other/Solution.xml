@@ -1,0 +1,39 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ImportExportXml version="9.2.26071.163" SolutionPackageVersion="9.2" languagecode="1033" generatedBy="CrmLive" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" OrganizationVersion="9.2.26071.163" OrganizationSchemaType="Standard" CRMServerServiceabilityVersion="9.2.26071.00163">
+  <SolutionManifest>
+    <UniqueName>ChessPlayingAgent</UniqueName>
+    <LocalizedNames>
+      <LocalizedName description="Chess Playing Agent" languagecode="1033" />
+    </LocalizedNames>
+    <Descriptions>
+      <Description description="Power Platform chess solution containing the skills-based Copilot Studio agent, Dataverse game state, Power Automate orchestration, and Canvas App." languagecode="1033" />
+    </Descriptions>
+    <Version>1.0.0.1</Version>
+    <Managed>0</Managed>
+    <Publisher>
+      <UniqueName>VeldarrSolutions</UniqueName>
+      <LocalizedNames>
+        <LocalizedName description="Veldarr Solutions" languagecode="1033" />
+      </LocalizedNames>
+      <Descriptions />
+      <EMailAddress xsi:nil="true"></EMailAddress>
+      <SupportingWebsiteUrl xsi:nil="true"></SupportingWebsiteUrl>
+      <CustomizationPrefix>vls</CustomizationPrefix>
+      <CustomizationOptionValuePrefix>95085</CustomizationOptionValuePrefix>
+      <Addresses />
+    </Publisher>
+    <RootComponents>
+      <RootComponent type="1" schemaName="vls_chessgame" behavior="0" />
+      <RootComponent type="1" schemaName="vls_chesspositionsnapshot" behavior="0" />
+      <RootComponent type="29" id="{7c996af6-6c7e-f111-ab0f-7ced8d9c5c1b}" behavior="0" />
+      <RootComponent type="300" schemaName="vls_chesscopilot_9e090" behavior="0" />
+      <RootComponent type="9" schemaName="vls_chesscolor" behavior="0" />
+      <RootComponent type="9" schemaName="vls_chessgamemode" behavior="0" />
+      <RootComponent type="9" schemaName="vls_chessgamestatus" behavior="0" />
+      <RootComponent type="9" schemaName="vls_chessgametermination" behavior="0" />
+      <RootComponent type="9" schemaName="vls_chessparticipanttype" behavior="0" />
+      <RootComponent type="9" schemaName="vls_chesspiece" behavior="0" />
+    </RootComponents>
+    <MissingDependencies />
+  </SolutionManifest>
+</ImportExportXml>

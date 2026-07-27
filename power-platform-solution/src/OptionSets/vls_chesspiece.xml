@@ -1,0 +1,80 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<optionset Name="vls_chesspiece" localizedName="Chess Piece" description="Reusable representation of an empty chess square or a white or black chess piece." xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <OptionSetType>picklist</OptionSetType>
+  <IsGlobal>1</IsGlobal>
+  <IntroducedVersion>1.0.0.0</IntroducedVersion>
+  <IsCustomizable>1</IsCustomizable>
+  <displaynames>
+    <displayname description="Chess Piece" languagecode="1033" />
+  </displaynames>
+  <Descriptions>
+    <Description description="Reusable representation of an empty chess square or a white or black chess piece." languagecode="1033" />
+  </Descriptions>
+  <options>
+    <option value="950850000" ExternalValue="" IsHidden="0">
+      <labels>
+        <label description="Empty" languagecode="1033" />
+      </labels>
+    </option>
+    <option value="950850001" ExternalValue="" IsHidden="0">
+      <labels>
+        <label description="White Pawn" languagecode="1033" />
+      </labels>
+    </option>
+    <option value="950850002" ExternalValue="" IsHidden="0">
+      <labels>
+        <label description="White Knight" languagecode="1033" />
+      </labels>
+    </option>
+    <option value="950850003" ExternalValue="" IsHidden="0">
+      <labels>
+        <label description="White Bishop" languagecode="1033" />
+      </labels>
+    </option>
+    <option value="950850004" ExternalValue="" IsHidden="0">
+      <labels>
+        <label description="White Rook" languagecode="1033" />
+      </labels>
+    </option>
+    <option value="950850005" ExternalValue="" IsHidden="0">
+      <labels>
+        <label description="White Queen" languagecode="1033" />
+      </labels>
+    </option>
+    <option value="950850006" ExternalValue="" IsHidden="0">
+      <labels>
+        <label description="White King" languagecode="1033" />
+      </labels>
+    </option>
+    <option value="950850007" ExternalValue="" IsHidden="0">
+      <labels>
+        <label description="Black Pawn" languagecode="1033" />
+      </labels>
+    </option>
+    <option value="950850008" ExternalValue="" IsHidden="0">
+      <labels>
+        <label description="Black Knight" languagecode="1033" />
+      </labels>
+    </option>
+    <option value="950850009" ExternalValue="" IsHidden="0">
+      <labels>
+        <label description="Black Bishop" languagecode="1033" />
+      </labels>
+    </option>
+    <option value="950850010" ExternalValue="" IsHidden="0">
+      <labels>
+        <label description="Black Rook" languagecode="1033" />
+      </labels>
+    </option>
+    <option value="950850011" ExternalValue="" IsHidden="0">
+      <labels>
+        <label description="Black Queen" languagecode="1033" />
+      </labels>
+    </option>
+    <option value="950850012" ExternalValue="" IsHidden="0">
+      <labels>
+        <label description="Black King" languagecode="1033" />
+      </labels>
+    </option>
+  </options>
+</optionset>

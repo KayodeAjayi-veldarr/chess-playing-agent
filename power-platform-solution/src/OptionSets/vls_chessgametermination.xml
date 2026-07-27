@@ -1,0 +1,65 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<optionset Name="vls_chessgametermination" localizedName="Chess Game Termination" description="Reason a chess game ended." xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <OptionSetType>picklist</OptionSetType>
+  <IsGlobal>1</IsGlobal>
+  <IntroducedVersion>1.0.0.0</IntroducedVersion>
+  <IsCustomizable>1</IsCustomizable>
+  <displaynames>
+    <displayname description="Chess Game Termination" languagecode="1033" />
+  </displaynames>
+  <Descriptions>
+    <Description description="Reason a chess game ended." languagecode="1033" />
+  </Descriptions>
+  <options>
+    <option value="950850000" ExternalValue="" IsHidden="0">
+      <labels>
+        <label description="Checkmate" languagecode="1033" />
+      </labels>
+    </option>
+    <option value="950850001" ExternalValue="" IsHidden="0">
+      <labels>
+        <label description="Stalemate" languagecode="1033" />
+      </labels>
+    </option>
+    <option value="950850002" ExternalValue="" IsHidden="0">
+      <labels>
+        <label description="Threefold Repetition" languagecode="1033" />
+      </labels>
+    </option>
+    <option value="950850003" ExternalValue="" IsHidden="0">
+      <labels>
+        <label description="Fifty Move Rule" languagecode="1033" />
+      </labels>
+    </option>
+    <option value="950850004" ExternalValue="" IsHidden="0">
+      <labels>
+        <label description="Insufficient Material" languagecode="1033" />
+      </labels>
+    </option>
+    <option value="950850005" ExternalValue="" IsHidden="0">
+      <labels>
+        <label description="Draw Agreement" languagecode="1033" />
+      </labels>
+    </option>
+    <option value="950850006" ExternalValue="" IsHidden="0">
+      <labels>
+        <label description="Resignation" languagecode="1033" />
+      </labels>
+    </option>
+    <option value="950850007" ExternalValue="" IsHidden="0">
+      <labels>
+        <label description="Timeout" languagecode="1033" />
+      </labels>
+    </option>
+    <option value="950850008" ExternalValue="" IsHidden="0">
+      <labels>
+        <label description="Abandoned" languagecode="1033" />
+      </labels>
+    </option>
+    <option value="950850009" ExternalValue="" IsHidden="0">
+      <labels>
+        <label description="Error" languagecode="1033" />
+      </labels>
+    </option>
+  </options>
+</optionset>

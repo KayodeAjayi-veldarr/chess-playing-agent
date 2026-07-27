@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Workflow WorkflowId="{7c996af6-6c7e-f111-ab0f-7ced8d9c5c1b}" Name="Call Agent" Description="Canvas-triggered chess agent turn orchestration. Validates vls_chessgame ownership and state, resumes the participant conversation, invokes the published chess agent, and returns authoritative game and snapshot state." xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <JsonFileName>/Workflows/CallAgent-7C996AF6-6C7E-F111-AB0F-7CED8D9C5C1B.json</JsonFileName>
+  <Type>1</Type>
+  <Subprocess>0</Subprocess>
+  <Category>5</Category>
+  <Mode>0</Mode>
+  <Scope>4</Scope>
+  <OnDemand>0</OnDemand>
+  <TriggerOnCreate>0</TriggerOnCreate>
+  <TriggerOnDelete>0</TriggerOnDelete>
+  <AsyncAutodelete>0</AsyncAutodelete>
+  <SyncWorkflowLogOnFailure>0</SyncWorkflowLogOnFailure>
+  <StateCode>1</StateCode>
+  <StatusCode>2</StatusCode>
+  <RunAs>0</RunAs>
+  <UniqueName>vls_CallAgent</UniqueName>
+  <IsTransacted>1</IsTransacted>
+  <IntroducedVersion>1.0.0.0</IntroducedVersion>
+  <IsCustomizable>1</IsCustomizable>
+  <IsCustomProcessingStepAllowedForOtherPublishers>1</IsCustomProcessingStepAllowedForOtherPublishers>
+  <ModernFlowType>0</ModernFlowType>
+  <SchemaVersion>1.0.0.0</SchemaVersion>
+  <PrimaryEntity>none</PrimaryEntity>
+  <LocalizedNames>
+    <LocalizedName languagecode="1033" description="Call Agent" />
+  </LocalizedNames>
+  <Descriptions>
+    <Description languagecode="1033" description="Canvas-triggered chess agent turn orchestration. Validates vls_chessgame ownership and state, resumes the participant conversation, invokes the published chess agent, and returns authoritative game and snapshot state." />
+  </Descriptions>
+</Workflow>

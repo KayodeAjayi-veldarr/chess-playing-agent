@@ -1,0 +1,1088 @@
+{
+  "properties": {
+    "connectionReferences": {
+      "shared_commondataserviceforapps": {
+        "runtimeSource": "embedded",
+        "connection": {
+          "connectionReferenceLogicalName": "vls_sharedcommondataserviceforapps_chess"
+        },
+        "api": {
+          "name": "shared_commondataserviceforapps"
+        }
+      },
+      "shared_agentnode": {
+        "runtimeSource": "invoker",
+        "connection": {
+          "connectionReferenceLogicalName": "new_sharedagentnode_06185c03"
+        },
+        "api": {
+          "name": "shared_agentnode"
+        }
+      }
+    },
+    "definition": {
+      "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "$connections": {
+          "defaultValue": {},
+          "type": "Object"
+        },
+        "$authentication": {
+          "defaultValue": {},
+          "type": "SecureObject"
+        }
+      },
+      "triggers": {
+        "manual": {
+          "metadata": {
+            "operationMetadataId": "2f4c6da9-07de-4a2f-a874-90ea6410f869"
+          },
+          "type": "Request",
+          "kind": "PowerAppV2",
+          "inputs": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "gameId": {
+                  "title": "Game ID",
+                  "type": "string",
+                  "x-ms-dynamically-added": true,
+                  "description": "Business game identifier stored in vls_gameid. Example: d7a8e927-0488-4a81-ae64-f1d5032dec86.",
+                  "x-ms-content-hint": "TEXT"
+                },
+                "conversationId": {
+                  "title": "Conversation ID",
+                  "type": "string",
+                  "x-ms-dynamically-added": true,
+                  "description": "Existing participant conversation ID, or __NEW__ only when that participant has no persisted conversation yet.",
+                  "x-ms-content-hint": "TEXT"
+                },
+                "participantSlot": {
+                  "title": "Participant slot",
+                  "type": "string",
+                  "x-ms-dynamically-added": true,
+                  "description": "Agent-owned participant slot: A or B.",
+                  "x-ms-content-hint": "TEXT"
+                },
+                "participantColor": {
+                  "title": "Participant color",
+                  "type": "string",
+                  "x-ms-dynamically-added": true,
+                  "description": "Agent-owned color: White or Black.",
+                  "x-ms-content-hint": "TEXT"
+                },
+                "agentIdentity": {
+                  "title": "Agent identity",
+                  "type": "string",
+                  "x-ms-dynamically-added": true,
+                  "description": "Expected agent ID efdb6712-534c-4c0b-889b-aa99d9614e3b.",
+                  "x-ms-content-hint": "TEXT"
+                },
+                "requestPhase": {
+                  "title": "Request phase",
+                  "type": "string",
+                  "x-ms-dynamically-added": true,
+                  "description": "recommend for analysis only, or commit with an app-validated payload.",
+                  "x-ms-content-hint": "TEXT"
+                },
+                "commitPayload": {
+                  "title": "Validated commit payload",
+                  "type": "string",
+                  "x-ms-dynamically-added": true,
+                  "description": "For recommend, optional Canvas rejection feedback JSON for the previous illegal/stale agent recommendation. For commit, app-validated payload.",
+                  "x-ms-content-hint": "TEXT"
+                }
+              },
+              "required": [
+                "gameId",
+                "conversationId",
+                "participantSlot",
+                "participantColor",
+                "agentIdentity",
+                "requestPhase",
+                "commitPayload"
+              ]
+            }
+          }
+        }
+      },
+      "actions": {
+        "Initialize_Invocation_ID": {
+          "runAfter": {},
+          "metadata": {
+            "operationMetadataId": "5d999cc6-7fd2-430b-a3ba-b80cbe210c0d"
+          },
+          "type": "InitializeVariable",
+          "inputs": {
+            "variables": [
+              {
+                "name": "invocationId",
+                "type": "string",
+                "value": "@guid()"
+              }
+            ]
+          }
+        },
+        "List_Game": {
+          "runAfter": {
+            "Initialize_Invocation_ID": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "7280b1e3-2626-444a-9b02-9d7a30466dad"
+          },
+          "type": "OpenApiConnection",
+          "inputs": {
+            "host": {
+              "connectionName": "shared_commondataserviceforapps",
+              "operationId": "ListRecords",
+              "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+            },
+            "parameters": {
+              "entityName": "vls_chessgames",
+              "$select": "vls_chessgameid,vls_gameid,vls_gamestatus,vls_currentfen,vls_currentply,vls_sidetomove,_vls_currentposition_value,vls_playeracolor,vls_playeratype,vls_playeraconversationid,vls_playerbcolor,vls_playerbtype,vls_playerbconversationid,vls_lockowner,vls_lockexpireson",
+              "$filter": "@{concat('vls_gameid eq ''',triggerBody()?['gameId'],''' and statecode eq 0')}",
+              "$top": 2
+            },
+            "authentication": "@parameters('$authentication')"
+          }
+        },
+        "Compose_Game": {
+          "runAfter": {
+            "List_Game": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "cd742409-7c5e-4fb0-b77d-e3e3e14981ea"
+          },
+          "type": "Compose",
+          "inputs": "@if(empty(body('List_Game')?['value']),json('{}'),first(body('List_Game')?['value']))"
+        },
+        "Compose_Expected_Slot": {
+          "runAfter": {
+            "Compose_Game": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "7b84d24c-909e-4dd2-8a95-6e42650146f2"
+          },
+          "type": "Compose",
+          "inputs": "@if(equals(outputs('Compose_Game')?['vls_sidetomove'],outputs('Compose_Game')?['vls_playeracolor']),'A',if(equals(outputs('Compose_Game')?['vls_sidetomove'],outputs('Compose_Game')?['vls_playerbcolor']),'B',''))"
+        },
+        "Compose_Expected_Color": {
+          "runAfter": {
+            "Compose_Expected_Slot": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "6e5b43fc-18c2-42c9-9b60-0e9ed171b9c7"
+          },
+          "type": "Compose",
+          "inputs": "@if(equals(outputs('Compose_Game')?['vls_sidetomove'],950850000),'White',if(equals(outputs('Compose_Game')?['vls_sidetomove'],950850001),'Black',''))"
+        },
+        "Compose_Expected_Conversation": {
+          "runAfter": {
+            "Compose_Expected_Color": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "d9cb5388-51a1-44b2-bc13-7f9ec4ad7bba"
+          },
+          "type": "Compose",
+          "inputs": "@if(equals(outputs('Compose_Expected_Slot'),'A'),outputs('Compose_Game')?['vls_playeraconversationid'],outputs('Compose_Game')?['vls_playerbconversationid'])"
+        },
+        "Compose_Expected_Participant_Type": {
+          "runAfter": {
+            "Compose_Expected_Conversation": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "51b2ebfa-b47e-49f8-b87a-1f920a56ed2d"
+          },
+          "type": "Compose",
+          "inputs": "@if(equals(outputs('Compose_Expected_Slot'),'A'),outputs('Compose_Game')?['vls_playeratype'],outputs('Compose_Game')?['vls_playerbtype'])"
+        },
+        "Compose_Validation_Error_Code": {
+          "runAfter": {
+            "Compose_Expected_Participant_Type": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "145a94de-1c94-4284-9740-8eff6efac910"
+          },
+          "type": "Compose",
+          "inputs": "@if(or(empty(triggerBody()?['gameId']),not(equals(length(triggerBody()?['gameId']),36))),'invalid_game_id',if(not(or(equals(toLower(triggerBody()?['requestPhase']),'recommend'),equals(toLower(triggerBody()?['requestPhase']),'commit'))),'invalid_phase',if(not(equals(length(body('List_Game')?['value']),1)),'game_not_found',if(not(equals(outputs('Compose_Game')?['vls_gamestatus'],950850001)),'game_not_active',if(empty(outputs('Compose_Expected_Slot')),'state_conflict',if(not(equals(outputs('Compose_Expected_Participant_Type'),950850001)),'not_agent_turn',if(not(equals(toUpper(triggerBody()?['participantSlot']),outputs('Compose_Expected_Slot'))),'participant_mismatch',if(not(equals(toLower(triggerBody()?['participantColor']),toLower(outputs('Compose_Expected_Color')))),'participant_mismatch',if(not(or(and(empty(outputs('Compose_Expected_Conversation')),equals(triggerBody()?['conversationId'],'__NEW__')),equals(triggerBody()?['conversationId'],outputs('Compose_Expected_Conversation')))),'conversation_mismatch',if(not(or(equals(toLower(triggerBody()?['agentIdentity']),'efdb6712-534c-4c0b-889b-aa99d9614e3b'),equals(toLower(triggerBody()?['agentIdentity']),'cr174_copilotchess_gdgjrj'))),'agent_mismatch',if(and(not(empty(outputs('Compose_Game')?['vls_lockowner'])),greater(ticks(coalesce(outputs('Compose_Game')?['vls_lockexpireson'],'1900-01-01T00:00:00Z')),ticks(utcNow()))),'turn_locked','')))))))))))"
+        },
+        "Compose_Validation_Message": {
+          "runAfter": {
+            "Compose_Validation_Error_Code": [
+              "Succeeded"
+            ]
+          },
+          "metadata": {
+            "operationMetadataId": "8976464e-138a-4942-949e-e14ae73abb6b"
+          },
+          "type": "Compose",
+          "inputs": "@if(empty(outputs('Compose_Validation_Error_Code')),'',if(equals(outputs('Compose_Validation_Error_Code'),'invalid_game_id'),'Game ID must be the persisted 36-character business game ID.',if(equals(outputs('Compose_Validation_Error_Code'),'invalid_phase'),'Request phase must be recommend or commit.',if(equals(outputs('Compose_Validation_Error_Code'),'game_not_found'),'No single active Dataverse row matched this game ID.',if(equals(outputs('Compose_Validation_Error_Code'),'game_not_active'),'The game is not active.',if(equals(outputs('Compose_Validation_Error_Code'),'not_agent_turn'),'The current side is not owned by a Copilot Agent participant.',if(equals(outputs('Compose_Validation_Error_Code'),'conversation_mismatch'),'The supplied conversation ID does not belong to the agent-owned participant.',if(equals(outputs('Compose_Validation_Error_Code'),'turn_locked'),'Another invocation currently owns the game turn lock.','Participant, color, agent, or persisted game state did not match.'))))))))"
+        },
+        "If_Request_Invalid": {
+          "actions": {
+            "Respond_Validation_Error": {
+              "runAfter": {},
+              "metadata": {
+                "operationMetadataId": "10ffd936-45b1-4606-98f2-b90f597a2bff"
+              },
+              "type": "Response",
+              "kind": "PowerApp",
+              "inputs": {
+                "statusCode": 200,
+                "body": {
+                  "success": false,
+                  "status": "@outputs('Compose_Validation_Error_Code')",
+                  "message": "@outputs('Compose_Validation_Message')",
+                  "conversationid": "@coalesce(triggerBody()?['conversationId'],'')",
+                  "gamerecordid": "@coalesce(outputs('Compose_Game')?['vls_chessgameid'],'')",
+                  "currentply": "@int(coalesce(outputs('Compose_Game')?['vls_currentply'],0))",
+                  "currentfen": "@coalesce(outputs('Compose_Game')?['vls_currentfen'],'')",
+                  "sidetomove": "@outputs('Compose_Expected_Color')",
+                  "snapshotid": "@coalesce(outputs('Compose_Game')?['_vls_currentposition_value'],'')",
+                  "errorcode": "@outputs('Compose_Validation_Error_Code')",
+                  "errordetails": "@outputs('Compose_Validation_Message')"
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "title": "success",
+                      "x-ms-dynamically-added": true,
+                      "type": "boolean"
+                    },
+                    "status": {
+                      "title": "status",
+                      "x-ms-dynamically-added": true,
+                      "type": "string"
+                    },
+                    "message": {
+                      "title": "message",
+                      "x-ms-dynamically-added": true,
+                      "type": "string"
+                    },
+                    "conversationid": {
+                      "title": "conversationId",
+                      "x-ms-dynamically-added": true,
+                      "type": "string"
+                    },
+                    "gamerecordid": {
+                      "title": "gameRecordId",
+                      "x-ms-dynamically-added": true,
+                      "type": "string"
+                    },
+                    "currentply": {
+                      "title": "currentPly",
+                      "x-ms-dynamically-added": true,
+                      "type": "number"
+                    },
+                    "currentfen": {
+                      "title": "currentFen",
+                      "x-ms-dynamically-added": true,
+                      "type": "string"
+                    },
+                    "sidetomove": {
+                      "title": "sideToMove",
+                      "x-ms-dynamically-added": true,
+                      "type": "string"
+                    },
+                    "snapshotid": {
+                      "title": "snapshotId",
+                      "x-ms-dynamically-added": true,
+                      "type": "string"
+                    },
+                    "agentresponse": {
+                      "title": "agentResponse",
+                      "x-ms-dynamically-added": true,
+                      "type": "string"
+                    },
+                    "errorcode": {
+                      "title": "errorCode",
+                      "x-ms-dynamically-added": true,
+                      "type": "string"
+                    },
+                    "errordetails": {
+                      "title": "errorDetails",
+                      "x-ms-dynamically-added": true,
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "runAfter": {
+            "Compose_Validation_Message": [
+              "Succeeded"
+            ]
+          },
+          "else": {
+            "actions": {
+              "Parse_Commit_Payload": {
+                "runAfter": {},
+                "metadata": {
+                  "operationMetadataId": "8ed4223f-cb87-4963-94c5-fbb53343c954"
+                },
+                "type": "ParseJson",
+                "inputs": {
+                  "content": "@if(empty(triggerBody()?['commitPayload']),json('{}'),json(triggerBody()?['commitPayload']))",
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "expectedPly": {
+                        "type": "integer"
+                      },
+                      "expectedFen": {
+                        "type": "string"
+                      },
+                      "nextFen": {
+                        "type": "string"
+                      },
+                      "nextSideToMove": {
+                        "type": "string"
+                      },
+                      "uci": {
+                        "type": "string"
+                      },
+                      "san": {
+                        "type": "string"
+                      },
+                      "fromSquare": {
+                        "type": "string"
+                      },
+                      "toSquare": {
+                        "type": "string"
+                      },
+                      "moverColor": {
+                        "type": "string"
+                      },
+                      "isCapture": {
+                        "type": "boolean"
+                      },
+                      "isCheck": {
+                        "type": "boolean"
+                      },
+                      "isCheckmate": {
+                        "type": "boolean"
+                      },
+                      "isStalemate": {
+                        "type": "boolean"
+                      },
+                      "castlingRights": {
+                        "type": "string"
+                      },
+                      "enPassantTarget": {
+                        "type": "string"
+                      },
+                      "halfmoveClock": {
+                        "type": "integer"
+                      },
+                      "fullmoveNumber": {
+                        "type": "integer"
+                      },
+                      "squares": {
+                        "type": "object"
+                      },
+                      "legalCandidateCount": {
+                        "type": "integer"
+                      },
+                      "legalCandidateMoves": {
+                        "type": "string"
+                      },
+                      "previousRejectedMove": {
+                        "type": "string"
+                      },
+                      "previousRejectedSan": {
+                        "type": "string"
+                      },
+                      "previousRejectedFen": {
+                        "type": "string"
+                      },
+                      "previousRejectedPly": {
+                        "type": "integer"
+                      },
+                      "previousRejectedSideToMove": {
+                        "type": "string"
+                      },
+                      "previousRejectedReason": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              },
+              "Compose_Commit_Error": {
+                "runAfter": {
+                  "Parse_Commit_Payload": [
+                    "Succeeded"
+                  ]
+                },
+                "metadata": {
+                  "operationMetadataId": "fedaa758-9700-40f0-a531-cd73d624f908"
+                },
+                "type": "Compose",
+                "inputs": "@if(not(equals(toLower(triggerBody()?['requestPhase']),'commit')),'',if(not(equals(body('Parse_Commit_Payload')?['expectedPly'],outputs('Compose_Game')?['vls_currentply'])),'stale_ply',if(not(equals(body('Parse_Commit_Payload')?['expectedFen'],outputs('Compose_Game')?['vls_currentfen'])),'stale_fen',if(or(empty(body('Parse_Commit_Payload')?['nextFen']),empty(body('Parse_Commit_Payload')?['nextSideToMove']),empty(body('Parse_Commit_Payload')?['uci']),empty(body('Parse_Commit_Payload')?['san']),empty(body('Parse_Commit_Payload')?['squares'])),'incomplete_commit_payload',if(or(not(contains(string(body('Parse_Commit_Payload')?['squares']),'\"vls_a1\"')),not(contains(string(body('Parse_Commit_Payload')?['squares']),'\"vls_b1\"')),not(contains(string(body('Parse_Commit_Payload')?['squares']),'\"vls_c1\"')),not(contains(string(body('Parse_Commit_Payload')?['squares']),'\"vls_d1\"')),not(contains(string(body('Parse_Commit_Payload')?['squares']),'\"vls_e1\"')),not(contains(string(body('Parse_Commit_Payload')?['squares']),'\"vls_f1\"')),not(contains(string(body('Parse_Commit_Payload')?['squares']),'\"vls_g1\"')),not(contains(string(body('Parse_Commit_Payload')?['squares']),'\"vls_h1\"')),not(contains(string(body('Parse_Commit_Payload')?['squares']),'\"vls_a2\"')),not(contains(string(body('Parse_Commit_Payload')?['squares']),'\"vls_b2\"')),not(contains(string(body('Parse_Commit_Payload')?['squares']),'\"vls_c2\"')),not(contains(string(body('Parse_Commit_Payload')?['squares']),'\"vls_d2\"')),not(contains(string(body('Parse_Commit_Payload')?['squares']),'\"vls_e2\"')),not(contains(string(body('Parse_Commit_Payload')?['squares']),'\"vls_f2\"')),not(contains(string(body('Parse_Commit_Payload')?['squares']),'\"vls_g2\"')),not(contains(string(body('Parse_Commit_Payload')?['squares']),'\"vls_h2\"')),not(contains(string(body('Parse_Commit_Payload')?['squares']),'\"vls_a3\"')),not(contains(string(body('Parse_Commit_Payload')?['squares']),'\"vls_b3\"')),not(contains(string(body('Parse_Commit_Payload')?['squares']),'\"vls_c3\"')),not(contains(string(body('Parse_Commit_Payload')?['squares']),'\"vls_d3\"')),not(contains(string(body('Parse_Commit_Payload')?['squares']),'\"vls_e3\"')),not(contains(string(body('Parse_Commit_Payload')?['squares']),'\"vls_f3\"')),not(contains(string(body('Parse_Commit_Payload')?['squares']),'\"vls_g3\"')),not(contains(string(body('Parse_Commit_Payload')?['squares']),'\"vls_h3\"')),not(contains(string(body('Parse_Commit_Payload')?['squares']),'\"vls_a4\"')),not(contains(string(body('Parse_Commit_Payload')?['squares']),'\"vls_b4\"')),not(contains(string(body('Parse_Commit_Payload')?['squares']),'\"vls_c4\"')),not(contains(string(body('Parse_Commit_Payload')?['squares']),'\"vls_d4\"')),not(contains(string(body('Parse_Commit_Payload')?['squares']),'\"vls_e4\"')),not(contains(string(body('Parse_Commit_Payload')?['squares']),'\"vls_f4\"')),not(contains(string(body('Parse_Commit_Payload')?['squares']),'\"vls_g4\"')),not(contains(string(body('Parse_Commit_Payload')?['squares']),'\"vls_h4\"')),not(contains(string(body('Parse_Commit_Payload')?['squares']),'\"vls_a5\"')),not(contains(string(body('Parse_Commit_Payload')?['squares']),'\"vls_b5\"')),not(contains(string(body('Parse_Commit_Payload')?['squares']),'\"vls_c5\"')),not(contains(string(body('Parse_Commit_Payload')?['squares']),'\"vls_d5\"')),not(contains(string(body('Parse_Commit_Payload')?['squares']),'\"vls_e5\"')),not(contains(string(body('Parse_Commit_Payload')?['squares']),'\"vls_f5\"')),not(contains(string(body('Parse_Commit_Payload')?['squares']),'\"vls_g5\"')),not(contains(string(body('Parse_Commit_Payload')?['squares']),'\"vls_h5\"')),not(contains(string(body('Parse_Commit_Payload')?['squares']),'\"vls_a6\"')),not(contains(string(body('Parse_Commit_Payload')?['squares']),'\"vls_b6\"')),not(contains(string(body('Parse_Commit_Payload')?['squares']),'\"vls_c6\"')),not(contains(string(body('Parse_Commit_Payload')?['squares']),'\"vls_d6\"')),not(contains(string(body('Parse_Commit_Payload')?['squares']),'\"vls_e6\"')),not(contains(string(body('Parse_Commit_Payload')?['squares']),'\"vls_f6\"')),not(contains(string(body('Parse_Commit_Payload')?['squares']),'\"vls_g6\"')),not(contains(string(body('Parse_Commit_Payload')?['squares']),'\"vls_h6\"')),not(contains(string(body('Parse_Commit_Payload')?['squares']),'\"vls_a7\"')),not(contains(string(body('Parse_Commit_Payload')?['squares']),'\"vls_b7\"')),not(contains(string(body('Parse_Commit_Payload')?['squares']),'\"vls_c7\"')),not(contains(string(body('Parse_Commit_Payload')?['squares']),'\"vls_d7\"')),not(contains(string(body('Parse_Commit_Payload')?['squares']),'\"vls_e7\"')),not(contains(string(body('Parse_Commit_Payload')?['squares']),'\"vls_f7\"')),not(contains(string(body('Parse_Commit_Payload')?['squares']),'\"vls_g7\"')),not(contains(string(body('Parse_Commit_Payload')?['squares']),'\"vls_h7\"')),not(contains(string(body('Parse_Commit_Payload')?['squares']),'\"vls_a8\"')),not(contains(string(body('Parse_Commit_Payload')?['squares']),'\"vls_b8\"')),not(contains(string(body('Parse_Commit_Payload')?['squares']),'\"vls_c8\"')),not(contains(string(body('Parse_Commit_Payload')?['squares']),'\"vls_d8\"')),not(contains(string(body('Parse_Commit_Payload')?['squares']),'\"vls_e8\"')),not(contains(string(body('Parse_Commit_Payload')?['squares']),'\"vls_f8\"')),not(contains(string(body('Parse_Commit_Payload')?['squares']),'\"vls_g8\"')),not(contains(string(body('Parse_Commit_Payload')?['squares']),'\"vls_h8\"'))),'incomplete_commit_payload','')))))"
+              },
+              "If_Commit_Invalid": {
+                "actions": {
+                  "Respond_Commit_Error": {
+                    "runAfter": {},
+                    "metadata": {
+                      "operationMetadataId": "1e0d23be-728e-4069-b0b1-135fa915538c"
+                    },
+                    "type": "Response",
+                    "kind": "PowerApp",
+                    "inputs": {
+                      "statusCode": 200,
+                      "body": {
+                        "success": false,
+                        "status": "@outputs('Compose_Commit_Error')",
+                        "message": "The commit payload is stale or incomplete. Refresh the game before retrying.",
+                        "conversationid": "@triggerBody()?['conversationId']",
+                        "gamerecordid": "@outputs('Compose_Game')?['vls_chessgameid']",
+                        "currentply": "@int(outputs('Compose_Game')?['vls_currentply'])",
+                        "currentfen": "@outputs('Compose_Game')?['vls_currentfen']",
+                        "sidetomove": "@outputs('Compose_Expected_Color')",
+                        "snapshotid": "@coalesce(outputs('Compose_Game')?['_vls_currentposition_value'],'')",
+                        "errorcode": "@outputs('Compose_Commit_Error')",
+                        "errordetails": "No agent invocation occurred."
+                      },
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "success": {
+                            "title": "success",
+                            "x-ms-dynamically-added": true,
+                            "type": "boolean"
+                          },
+                          "status": {
+                            "title": "status",
+                            "x-ms-dynamically-added": true,
+                            "type": "string"
+                          },
+                          "message": {
+                            "title": "message",
+                            "x-ms-dynamically-added": true,
+                            "type": "string"
+                          },
+                          "conversationid": {
+                            "title": "conversationId",
+                            "x-ms-dynamically-added": true,
+                            "type": "string"
+                          },
+                          "gamerecordid": {
+                            "title": "gameRecordId",
+                            "x-ms-dynamically-added": true,
+                            "type": "string"
+                          },
+                          "currentply": {
+                            "title": "currentPly",
+                            "x-ms-dynamically-added": true,
+                            "type": "number"
+                          },
+                          "currentfen": {
+                            "title": "currentFen",
+                            "x-ms-dynamically-added": true,
+                            "type": "string"
+                          },
+                          "sidetomove": {
+                            "title": "sideToMove",
+                            "x-ms-dynamically-added": true,
+                            "type": "string"
+                          },
+                          "snapshotid": {
+                            "title": "snapshotId",
+                            "x-ms-dynamically-added": true,
+                            "type": "string"
+                          },
+                          "agentresponse": {
+                            "title": "agentResponse",
+                            "x-ms-dynamically-added": true,
+                            "type": "string"
+                          },
+                          "errorcode": {
+                            "title": "errorCode",
+                            "x-ms-dynamically-added": true,
+                            "type": "string"
+                          },
+                          "errordetails": {
+                            "title": "errorDetails",
+                            "x-ms-dynamically-added": true,
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "runAfter": {
+                  "Compose_Commit_Error": [
+                    "Succeeded"
+                  ]
+                },
+                "else": {
+                  "actions": {
+                    "Acquire_Turn_Lock": {
+                      "runAfter": {},
+                      "metadata": {
+                        "operationMetadataId": "f5bf951f-0760-4b0d-a607-5ed150d3cbe5"
+                      },
+                      "type": "OpenApiConnection",
+                      "inputs": {
+                        "host": {
+                          "connectionName": "shared_commondataserviceforapps",
+                          "operationId": "UpdateOnlyRecord",
+                          "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+                        },
+                        "parameters": {
+                          "entityName": "vls_chessgames",
+                          "recordId": "@outputs('Compose_Game')?['vls_chessgameid']",
+                          "item/vls_lastheartbeat": "@utcNow()",
+                          "item/vls_lockexpireson": "@addMinutes(utcNow(),2)",
+                          "item/vls_lockowner": "@variables('invocationId')"
+                        },
+                        "authentication": "@parameters('$authentication')"
+                      }
+                    },
+                    "Verify_Turn_Lock": {
+                      "runAfter": {
+                        "Acquire_Turn_Lock": [
+                          "Succeeded"
+                        ]
+                      },
+                      "metadata": {
+                        "operationMetadataId": "18a9c5ab-7ae4-4277-8712-d282135b58c0"
+                      },
+                      "type": "OpenApiConnection",
+                      "inputs": {
+                        "host": {
+                          "connectionName": "shared_commondataserviceforapps",
+                          "operationId": "GetItem",
+                          "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+                        },
+                        "parameters": {
+                          "entityName": "vls_chessgames",
+                          "recordId": "@outputs('Compose_Game')?['vls_chessgameid']"
+                        },
+                        "authentication": "@parameters('$authentication')"
+                      }
+                    },
+                    "If_Lock_Owned": {
+                      "actions": {
+                        "Read_Game_After_Agent": {
+                          "runAfter": {
+                            "Wait_For_Agent_Write": [
+                              "Succeeded"
+                            ]
+                          },
+                          "metadata": {
+                            "operationMetadataId": "4f65cf39-f93a-48d3-88a1-a74e400e6972"
+                          },
+                          "type": "OpenApiConnection",
+                          "inputs": {
+                            "host": {
+                              "connectionName": "shared_commondataserviceforapps",
+                              "operationId": "GetItem",
+                              "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+                            },
+                            "parameters": {
+                              "entityName": "vls_chessgames",
+                              "recordId": "@outputs('Compose_Game')?['vls_chessgameid']"
+                            },
+                            "authentication": "@parameters('$authentication')"
+                          }
+                        },
+                        "List_Latest_Snapshot": {
+                          "runAfter": {
+                            "Read_Game_After_Agent": [
+                              "Succeeded"
+                            ]
+                          },
+                          "metadata": {
+                            "operationMetadataId": "904630c9-29a9-4be2-aa63-87e3534d5f72"
+                          },
+                          "type": "OpenApiConnection",
+                          "inputs": {
+                            "host": {
+                              "connectionName": "shared_commondataserviceforapps",
+                              "operationId": "ListRecords",
+                              "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+                            },
+                            "parameters": {
+                              "entityName": "vls_chesspositionsnapshots",
+                              "$select": "vls_chesspositionsnapshotid,vls_ply,vls_fen,vls_sidetomove,vls_agentcommentary",
+                              "$filter": "@{concat('_vls_game_value eq ',outputs('Compose_Game')?['vls_chessgameid'])}",
+                              "$orderby": "vls_ply desc",
+                              "$top": 1
+                            },
+                            "authentication": "@parameters('$authentication')"
+                          }
+                        },
+                        "Compose_Agent_Result": {
+                          "runAfter": {
+                            "List_Latest_Snapshot": [
+                              "Succeeded"
+                            ]
+                          },
+                          "metadata": {
+                            "operationMetadataId": "a55acf44-7faa-4ce4-8663-236b08bbacce"
+                          },
+                          "type": "Compose",
+                          "inputs": "@json(coalesce(outputs('Agent')?['body/result'],'{\"status\":\"error\",\"gameId\":\"\",\"gameRecordId\":\"\",\"expectedPly\":0,\"expectedFen\":\"\",\"sideToMove\":\"\",\"move\":\"\",\"san\":\"\",\"strategy\":\"\",\"thinking\":\"\",\"reason\":\"Agent returned no result payload.\",\"opponentPlan\":\"\",\"teachingTip\":\"\",\"confidence\":0.0}'))"
+                        },
+                        "Compose_Progress_Confirmed": {
+                          "runAfter": {
+                            "Compose_Agent_Result": [
+                              "Succeeded"
+                            ]
+                          },
+                          "metadata": {
+                            "operationMetadataId": "5acba1ec-0eac-4348-b21a-e7bb314a31ef"
+                          },
+                          "type": "Compose",
+                          "inputs": "@if(equals(toLower(triggerBody()?['requestPhase']),'commit'),or(and(equals(body('Read_Game_After_Agent')?['vls_currentply'],add(outputs('Compose_Game')?['vls_currentply'],1)),equals(body('Read_Game_After_Agent')?['vls_currentfen'],body('Parse_Commit_Payload')?['nextFen'])),and(not(empty(body('List_Latest_Snapshot')?['value'])),equals(first(body('List_Latest_Snapshot')?['value'])?['vls_ply'],add(outputs('Compose_Game')?['vls_currentply'],1)),equals(first(body('List_Latest_Snapshot')?['value'])?['vls_fen'],body('Parse_Commit_Payload')?['nextFen']))),and(equals(body('Read_Game_After_Agent')?['vls_currentply'],outputs('Compose_Game')?['vls_currentply']),equals(body('Read_Game_After_Agent')?['vls_currentfen'],outputs('Compose_Game')?['vls_currentfen'])))"
+                        },
+                        "Release_Turn_Lock": {
+                          "runAfter": {
+                            "Compose_Progress_Confirmed": [
+                              "Succeeded"
+                            ]
+                          },
+                          "metadata": {
+                            "operationMetadataId": "bf2d56c9-6e0f-4759-9b3a-03cf8958a227"
+                          },
+                          "type": "OpenApiConnection",
+                          "inputs": {
+                            "host": {
+                              "connectionName": "shared_commondataserviceforapps",
+                              "operationId": "UpdateOnlyRecord",
+                              "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+                            },
+                            "parameters": {
+                              "entityName": "vls_chessgames",
+                              "recordId": "@outputs('Compose_Game')?['vls_chessgameid']",
+                              "item/vls_lastheartbeat": "@utcNow()",
+                              "item/vls_lockexpireson": "@utcNow()",
+                              "item/vls_lockowner": ""
+                            },
+                            "authentication": "@parameters('$authentication')"
+                          }
+                        },
+                        "Respond_Success": {
+                          "runAfter": {
+                            "Release_Turn_Lock": [
+                              "Succeeded"
+                            ]
+                          },
+                          "metadata": {
+                            "operationMetadataId": "7570eb9d-ef22-45c1-81c4-da97bed813cb"
+                          },
+                          "type": "Response",
+                          "kind": "PowerApp",
+                          "inputs": {
+                            "statusCode": 200,
+                            "body": {
+                              "success": "@if(equals(toLower(triggerBody()?['requestPhase']),'commit'),outputs('Compose_Progress_Confirmed'),and(outputs('Compose_Progress_Confirmed'),equals(outputs('Compose_Agent_Result')?['status'],'move_ready'),not(empty(outputs('Compose_Agent_Result')?['move']))))",
+                              "status": "@if(not(outputs('Compose_Progress_Confirmed')),'state_conflict',if(equals(toLower(triggerBody()?['requestPhase']),'commit'),'committed',outputs('Compose_Agent_Result')?['status']))",
+                              "message": "@if(not(outputs('Compose_Progress_Confirmed')),'The authoritative game did not show the expected progress.',if(equals(toLower(triggerBody()?['requestPhase']),'commit'),'Agent move committed and authoritative state reloaded.',if(equals(outputs('Compose_Agent_Result')?['status'],'move_ready'),'Agent move recommendation is ready for Canvas validation.',concat('Agent returned ',outputs('Compose_Agent_Result')?['status'],'.'))))",
+                              "conversationid": "@if(equals(toLower(triggerBody()?['requestPhase']),'recommend'),if(equals(triggerBody()?['conversationId'],'__NEW__'),'',triggerBody()?['conversationId']),coalesce(outputs('Agent')?['body/conversationId'],if(equals(triggerBody()?['conversationId'],'__NEW__'),'',triggerBody()?['conversationId'])))",
+                              "gamerecordid": "@body('Read_Game_After_Agent')?['vls_chessgameid']",
+                              "currentply": "@int(body('Read_Game_After_Agent')?['vls_currentply'])",
+                              "currentfen": "@body('Read_Game_After_Agent')?['vls_currentfen']",
+                              "sidetomove": "@if(equals(body('Read_Game_After_Agent')?['vls_sidetomove'],950850000),'White','Black')",
+                              "snapshotid": "@if(empty(body('List_Latest_Snapshot')?['value']),'',first(body('List_Latest_Snapshot')?['value'])?['vls_chesspositionsnapshotid'])",
+                              "agentresponse": "@coalesce(outputs('Agent')?['body/result'],'')",
+                              "errorcode": "@if(outputs('Compose_Progress_Confirmed'),'', 'state_conflict')",
+                              "errordetails": "@if(outputs('Compose_Progress_Confirmed'),'', 'The post-agent ply or FEN did not match the expected phase outcome.')"
+                            },
+                            "schema": {
+                              "type": "object",
+                              "properties": {
+                                "success": {
+                                  "title": "success",
+                                  "x-ms-dynamically-added": true,
+                                  "type": "boolean"
+                                },
+                                "status": {
+                                  "title": "status",
+                                  "x-ms-dynamically-added": true,
+                                  "type": "string"
+                                },
+                                "message": {
+                                  "title": "message",
+                                  "x-ms-dynamically-added": true,
+                                  "type": "string"
+                                },
+                                "conversationid": {
+                                  "title": "conversationId",
+                                  "x-ms-dynamically-added": true,
+                                  "type": "string"
+                                },
+                                "gamerecordid": {
+                                  "title": "gameRecordId",
+                                  "x-ms-dynamically-added": true,
+                                  "type": "string"
+                                },
+                                "currentply": {
+                                  "title": "currentPly",
+                                  "x-ms-dynamically-added": true,
+                                  "type": "number"
+                                },
+                                "currentfen": {
+                                  "title": "currentFen",
+                                  "x-ms-dynamically-added": true,
+                                  "type": "string"
+                                },
+                                "sidetomove": {
+                                  "title": "sideToMove",
+                                  "x-ms-dynamically-added": true,
+                                  "type": "string"
+                                },
+                                "snapshotid": {
+                                  "title": "snapshotId",
+                                  "x-ms-dynamically-added": true,
+                                  "type": "string"
+                                },
+                                "agentresponse": {
+                                  "title": "agentResponse",
+                                  "x-ms-dynamically-added": true,
+                                  "type": "string"
+                                },
+                                "errorcode": {
+                                  "title": "errorCode",
+                                  "x-ms-dynamically-added": true,
+                                  "type": "string"
+                                },
+                                "errordetails": {
+                                  "title": "errorDetails",
+                                  "x-ms-dynamically-added": true,
+                                  "type": "string"
+                                }
+                              }
+                            }
+                          }
+                        },
+                        "Release_Lock_After_Agent_Failure": {
+                          "runAfter": {
+                            "Agent": [
+                              "Failed",
+                              "TimedOut"
+                            ]
+                          },
+                          "metadata": {
+                            "operationMetadataId": "dca1c9d6-e53d-4b53-bd5d-f296eea6ceaa"
+                          },
+                          "type": "OpenApiConnection",
+                          "inputs": {
+                            "host": {
+                              "connectionName": "shared_commondataserviceforapps",
+                              "operationId": "UpdateOnlyRecord",
+                              "apiId": "/providers/Microsoft.PowerApps/apis/shared_commondataserviceforapps"
+                            },
+                            "parameters": {
+                              "entityName": "vls_chessgames",
+                              "recordId": "@outputs('Compose_Game')?['vls_chessgameid']",
+                              "item/vls_lastheartbeat": "@utcNow()",
+                              "item/vls_lockexpireson": "@utcNow()",
+                              "item/vls_lockowner": ""
+                            },
+                            "authentication": "@parameters('$authentication')"
+                          }
+                        },
+                        "Respond_Agent_Failure": {
+                          "runAfter": {
+                            "Release_Lock_After_Agent_Failure": [
+                              "Succeeded",
+                              "Failed",
+                              "TimedOut"
+                            ]
+                          },
+                          "metadata": {
+                            "operationMetadataId": "236d7ce4-2266-4b38-8205-186f199cb20d"
+                          },
+                          "type": "Response",
+                          "kind": "PowerApp",
+                          "inputs": {
+                            "statusCode": 200,
+                            "body": {
+                              "success": false,
+                              "status": "agent_error",
+                              "message": "The agent did not complete. No success was assumed; refresh before retrying.",
+                              "conversationid": "@triggerBody()?['conversationId']",
+                              "gamerecordid": "@outputs('Compose_Game')?['vls_chessgameid']",
+                              "currentply": "@int(outputs('Compose_Game')?['vls_currentply'])",
+                              "currentfen": "@outputs('Compose_Game')?['vls_currentfen']",
+                              "sidetomove": "@outputs('Compose_Expected_Color')",
+                              "snapshotid": "@coalesce(outputs('Compose_Game')?['_vls_currentposition_value'],'')",
+                              "errorcode": "agent_timeout_or_failure",
+                              "errordetails": "The Copilot Studio action failed or timed out. The turn lock was released; authoritative state must be refreshed before retrying."
+                            },
+                            "schema": {
+                              "type": "object",
+                              "properties": {
+                                "success": {
+                                  "title": "success",
+                                  "x-ms-dynamically-added": true,
+                                  "type": "boolean"
+                                },
+                                "status": {
+                                  "title": "status",
+                                  "x-ms-dynamically-added": true,
+                                  "type": "string"
+                                },
+                                "message": {
+                                  "title": "message",
+                                  "x-ms-dynamically-added": true,
+                                  "type": "string"
+                                },
+                                "conversationid": {
+                                  "title": "conversationId",
+                                  "x-ms-dynamically-added": true,
+                                  "type": "string"
+                                },
+                                "gamerecordid": {
+                                  "title": "gameRecordId",
+                                  "x-ms-dynamically-added": true,
+                                  "type": "string"
+                                },
+                                "currentply": {
+                                  "title": "currentPly",
+                                  "x-ms-dynamically-added": true,
+                                  "type": "number"
+                                },
+                                "currentfen": {
+                                  "title": "currentFen",
+                                  "x-ms-dynamically-added": true,
+                                  "type": "string"
+                                },
+                                "sidetomove": {
+                                  "title": "sideToMove",
+                                  "x-ms-dynamically-added": true,
+                                  "type": "string"
+                                },
+                                "snapshotid": {
+                                  "title": "snapshotId",
+                                  "x-ms-dynamically-added": true,
+                                  "type": "string"
+                                },
+                                "agentresponse": {
+                                  "title": "agentResponse",
+                                  "x-ms-dynamically-added": true,
+                                  "type": "string"
+                                },
+                                "errorcode": {
+                                  "title": "errorCode",
+                                  "x-ms-dynamically-added": true,
+                                  "type": "string"
+                                },
+                                "errordetails": {
+                                  "title": "errorDetails",
+                                  "x-ms-dynamically-added": true,
+                                  "type": "string"
+                                }
+                              }
+                            }
+                          }
+                        },
+                        "Agent": {
+                          "runAfter": {},
+                          "limit": {
+                            "timeout": "PT2M"
+                          },
+                          "metadata": {
+                            "description": "Agent",
+                            "nodeId": "agent-ef0c9f72-cb92-458e-bf9d-8fbc3d693b9e",
+                            "operationMetadataId": "e65c91bc-6340-4cea-aee7-a2f0a3814e41"
+                          },
+                          "type": "OpenApiConnection",
+                          "inputs": {
+                            "host": {
+                              "connectionName": "shared_agentnode",
+                              "operationId": "InvokeAgent",
+                              "apiId": "/providers/Microsoft.PowerApps/apis/shared_agentnode"
+                            },
+                            "parameters": {
+                              "body/agentId": "cr174_copilotchess_GdGJRJ",
+                              "body/prompt": "Conversation ID: @{if(equals(toLower(triggerBody()?['requestPhase']),'recommend'),null,if(equals(triggerBody()?['conversationId'],'__NEW__'),null,triggerBody()?['conversationId']))}\nEnvironment ID: ef77d261-f915-e0fb-95f4-1cbc09edb6ab\nRequest phase: @{triggerBody()?['requestPhase']}\ngameId=@{triggerBody()?['gameId']}\ngameRecordId=@{outputs('Compose_Game')?['vls_chessgameid']}\ngameStatus=Active\ncurrentPly=@{outputs('Compose_Game')?['vls_currentply']}\ncurrentFen=@{outputs('Compose_Game')?['vls_currentfen']}\nsideToMove=@{outputs('Compose_Expected_Color')}\nagentParticipantSlot=@{outputs('Compose_Expected_Slot')}\ncommitApproved=@{if(equals(toLower(triggerBody()?['requestPhase']),'commit'),'true','false')}\nappValidatedPayload=@{if(equals(toLower(triggerBody()?['requestPhase']),'commit'),triggerBody()?['commitPayload'],'')}\npreviousRejectedMoveFeedback=@{if(equals(toLower(triggerBody()?['requestPhase']),'recommend'),triggerBody()?['commitPayload'],'')}\nlegalCandidateCount=@{if(equals(toLower(triggerBody()?['requestPhase']),'recommend'),coalesce(body('Parse_Commit_Payload')?['legalCandidateCount'],0),0)}\nlegalCandidateMoves=@{if(equals(toLower(triggerBody()?['requestPhase']),'recommend'),coalesce(body('Parse_Commit_Payload')?['legalCandidateMoves'],''),'')}\npreviousRejectedMove=@{if(equals(toLower(triggerBody()?['requestPhase']),'recommend'),coalesce(body('Parse_Commit_Payload')?['previousRejectedMove'],''),'')}\npreviousRejectedReason=@{if(equals(toLower(triggerBody()?['requestPhase']),'recommend'),coalesce(body('Parse_Commit_Payload')?['previousRejectedReason'],''),'')}\nThe Call Agent flow has already validated that this Dataverse game row is Active, unlocked, and currently owned by the Copilot Agent participant. For recommend requests, treat this as a stateless turn: do not rely on Copilot conversation memory or prior chat messages as game state. Use only the current prompt values, Dataverse game/snapshot records, and previousRejectedMoveFeedback. Use the supplied gameId as the vls_gameid business key. The legalCandidateMoves line is a comma-separated authoritative list of UCI moves generated by the Canvas legal-move engine for the current FEN. When legalCandidateMoves is non-empty, choose exactly one move from that list and return move_ready only for a move in that list. The move field must always be strict lowercase UCI coordinate notation matching ^[a-h][1-8][a-h][1-8][qrbn]?$: from-square plus to-square plus optional promotion, e.g. f5g4, e2e4, e7e8q. Never put SAN, capture notation, x, check marks, #, =, uppercase piece letters, or castling notation in move; a pawn capture from f5 to g4 is f5g4, never fxg4. If your chosen move does not pass that regex, do not return move_ready. Put SAN only in san. If legalCandidateMoves is empty or missing but the Dataverse game row and latest snapshot agree, reconstruct legal moves from currentFen and choose a provably legal UCI move for sideToMove instead of returning no_legal_move; still return strict UCI in move. Return no_legal_move only for true checkmate/stalemate/no legal moves, and return state_conflict when the Dataverse row and latest snapshot disagree or the current FEN cannot be parsed. If previousRejectedMove is present, do not repeat it when another legal move exists. Use Dataverse history and coaching context only to rank and explain legal candidates. Return only the required compact JSON."
+                            },
+                            "authentication": "@parameters('$authentication')"
+                          }
+                        },
+                        "Wait_For_Agent_Write": {
+                          "runAfter": {
+                            "Agent": [
+                              "Succeeded"
+                            ]
+                          },
+                          "metadata": {
+                            "operationMetadataId": "wait-for-agent-write-20260714"
+                          },
+                          "type": "Wait",
+                          "inputs": {
+                            "interval": {
+                              "count": 3,
+                              "unit": "Second"
+                            }
+                          }
+                        }
+                      },
+                      "runAfter": {
+                        "Verify_Turn_Lock": [
+                          "Succeeded"
+                        ]
+                      },
+                      "else": {
+                        "actions": {
+                          "Respond_Lock_Error": {
+                            "runAfter": {},
+                            "metadata": {
+                              "operationMetadataId": "a290ef60-3afd-47ba-9183-0128c4cf2883"
+                            },
+                            "type": "Response",
+                            "kind": "PowerApp",
+                            "inputs": {
+                              "statusCode": 200,
+                              "body": {
+                                "success": false,
+                                "status": "turn_locked",
+                                "message": "The game turn lock could not be acquired.",
+                                "conversationid": "@triggerBody()?['conversationId']",
+                                "gamerecordid": "@outputs('Compose_Game')?['vls_chessgameid']",
+                                "currentply": "@int(outputs('Compose_Game')?['vls_currentply'])",
+                                "currentfen": "@outputs('Compose_Game')?['vls_currentfen']",
+                                "sidetomove": "@outputs('Compose_Expected_Color')",
+                                "snapshotid": "@coalesce(outputs('Compose_Game')?['_vls_currentposition_value'],'')",
+                                "errorcode": "turn_locked",
+                                "errordetails": "Lock owner changed before invocation."
+                              },
+                              "schema": {
+                                "type": "object",
+                                "properties": {
+                                  "success": {
+                                    "title": "success",
+                                    "x-ms-dynamically-added": true,
+                                    "type": "boolean"
+                                  },
+                                  "status": {
+                                    "title": "status",
+                                    "x-ms-dynamically-added": true,
+                                    "type": "string"
+                                  },
+                                  "message": {
+                                    "title": "message",
+                                    "x-ms-dynamically-added": true,
+                                    "type": "string"
+                                  },
+                                  "conversationid": {
+                                    "title": "conversationId",
+                                    "x-ms-dynamically-added": true,
+                                    "type": "string"
+                                  },
+                                  "gamerecordid": {
+                                    "title": "gameRecordId",
+                                    "x-ms-dynamically-added": true,
+                                    "type": "string"
+                                  },
+                                  "currentply": {
+                                    "title": "currentPly",
+                                    "x-ms-dynamically-added": true,
+                                    "type": "number"
+                                  },
+                                  "currentfen": {
+                                    "title": "currentFen",
+                                    "x-ms-dynamically-added": true,
+                                    "type": "string"
+                                  },
+                                  "sidetomove": {
+                                    "title": "sideToMove",
+                                    "x-ms-dynamically-added": true,
+                                    "type": "string"
+                                  },
+                                  "snapshotid": {
+                                    "title": "snapshotId",
+                                    "x-ms-dynamically-added": true,
+                                    "type": "string"
+                                  },
+                                  "agentresponse": {
+                                    "title": "agentResponse",
+                                    "x-ms-dynamically-added": true,
+                                    "type": "string"
+                                  },
+                                  "errorcode": {
+                                    "title": "errorCode",
+                                    "x-ms-dynamically-added": true,
+                                    "type": "string"
+                                  },
+                                  "errordetails": {
+                                    "title": "errorDetails",
+                                    "x-ms-dynamically-added": true,
+                                    "type": "string"
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      },
+                      "expression": {
+                        "equals": [
+                          "@body('Verify_Turn_Lock')?['vls_lockowner']",
+                          "@variables('invocationId')"
+                        ]
+                      },
+                      "metadata": {
+                        "operationMetadataId": "d7b50d7f-1ecb-4340-90fb-efbc69486133"
+                      },
+                      "type": "If"
+                    }
+                  }
+                },
+                "expression": {
+                  "not": {
+                    "equals": [
+                      "@outputs('Compose_Commit_Error')",
+                      ""
+                    ]
+                  }
+                },
+                "metadata": {
+                  "operationMetadataId": "1362eee1-6bb3-4df7-bf2e-7f169b18e2ec"
+                },
+                "type": "If"
+              }
+            }
+          },
+          "expression": {
+            "not": {
+              "equals": [
+                "@outputs('Compose_Validation_Error_Code')",
+                ""
+              ]
+            }
+          },
+          "metadata": {
+            "operationMetadataId": "985a788f-1c52-4ae7-bca7-d142ff8a63ad"
+          },
+          "type": "If"
+        }
+      },
+      "outputs": {}
+    },
+    "templateName": ""
+  },
+  "schemaVersion": "1.0.0.0"
+}

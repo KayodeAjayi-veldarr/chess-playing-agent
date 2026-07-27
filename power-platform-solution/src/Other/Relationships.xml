@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<EntityRelationships xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <EntityRelationship Name="business_unit_vls_chessgame" />
+  <EntityRelationship Name="business_unit_vls_chesspositionsnapshot" />
+  <EntityRelationship Name="lk_vls_chessgame_createdby" />
+  <EntityRelationship Name="lk_vls_chessgame_modifiedby" />
+  <EntityRelationship Name="lk_vls_chesspositionsnapshot_createdby" />
+  <EntityRelationship Name="lk_vls_chesspositionsnapshot_modifiedby" />
+  <EntityRelationship Name="owner_vls_chessgame" />
+  <EntityRelationship Name="owner_vls_chesspositionsnapshot" />
+  <EntityRelationship Name="team_vls_chessgame" />
+  <EntityRelationship Name="team_vls_chesspositionsnapshot" />
+  <EntityRelationship Name="user_vls_chessgame" />
+  <EntityRelationship Name="user_vls_chesspositionsnapshot" />
+  <EntityRelationship Name="vls_ChessGame_PositionSnapshots" />
+  <EntityRelationship Name="vls_ChessPositionSnapshot_CurrentGamePosition" />
+</EntityRelationships>
