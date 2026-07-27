@@ -4445,8 +4445,8 @@
           <IntroducedVersion>1.0.0.0</IntroducedVersion>
           <IsCustomizable>0</IsCustomizable>
           <EntityKeyAttributes>
-            <AttributeName>vls_ply</AttributeName>
             <AttributeName>vls_game</AttributeName>
+            <AttributeName>vls_ply</AttributeName>
           </EntityKeyAttributes>
           <displaynames>
             <displayname description="Chess Position Snapshot - Game and Ply" languagecode="1033" />
