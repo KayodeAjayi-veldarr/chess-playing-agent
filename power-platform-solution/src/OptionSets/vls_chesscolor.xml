@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<optionset Name="vls_chesscolor" localizedName="Chess Color" description="White or black participant or side-to-move value." xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <OptionSetType>picklist</OptionSetType>
+  <IsGlobal>1</IsGlobal>
+  <IntroducedVersion>1.0.0.0</IntroducedVersion>
+  <IsCustomizable>1</IsCustomizable>
+  <displaynames>
+    <displayname description="Chess Color" languagecode="1033" />
+  </displaynames>
+  <Descriptions>
+    <Description description="White or black participant or side-to-move value." languagecode="1033" />
+  </Descriptions>
+  <options>
+    <option value="950850000" ExternalValue="" IsHidden="0">
+      <labels>
+        <label description="White" languagecode="1033" />
+      </labels>
+    </option>
+    <option value="950850001" ExternalValue="" IsHidden="0">
+      <labels>
+        <label description="Black" languagecode="1033" />
+      </labels>
+    </option>
+  </options>
+</optionset>

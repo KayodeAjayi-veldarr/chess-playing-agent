@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<optionset Name="vls_chessgamemode" localizedName="Chess Game Mode" description="Participant arrangement for a chess game." xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <OptionSetType>picklist</OptionSetType>
+  <IsGlobal>1</IsGlobal>
+  <IntroducedVersion>1.0.0.0</IntroducedVersion>
+  <IsCustomizable>1</IsCustomizable>
+  <displaynames>
+    <displayname description="Chess Game Mode" languagecode="1033" />
+  </displaynames>
+  <Descriptions>
+    <Description description="Participant arrangement for a chess game." languagecode="1033" />
+  </Descriptions>
+  <options>
+    <option value="950850000" ExternalValue="" IsHidden="0">
+      <labels>
+        <label description="Human vs Agent" languagecode="1033" />
+      </labels>
+    </option>
+    <option value="950850001" ExternalValue="" IsHidden="0">
+      <labels>
+        <label description="Agent vs Agent" languagecode="1033" />
+      </labels>
+    </option>
+    <option value="950850002" ExternalValue="" IsHidden="0">
+      <labels>
+        <label description="Human vs Human" languagecode="1033" />
+      </labels>
+    </option>
+  </options>
+</optionset>

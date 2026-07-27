@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<optionset Name="vls_chessparticipanttype" localizedName="Chess Participant Type" description="Type of participant in a chess game." xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <OptionSetType>picklist</OptionSetType>
+  <IsGlobal>1</IsGlobal>
+  <IntroducedVersion>1.0.0.0</IntroducedVersion>
+  <IsCustomizable>1</IsCustomizable>
+  <displaynames>
+    <displayname description="Chess Participant Type" languagecode="1033" />
+  </displaynames>
+  <Descriptions>
+    <Description description="Type of participant in a chess game." languagecode="1033" />
+  </Descriptions>
+  <options>
+    <option value="950850000" ExternalValue="" IsHidden="0">
+      <labels>
+        <label description="Human" languagecode="1033" />
+      </labels>
+    </option>
+    <option value="950850001" ExternalValue="" IsHidden="0">
+      <labels>
+        <label description="Copilot Agent" languagecode="1033" />
+      </labels>
+    </option>
+  </options>
+</optionset>
